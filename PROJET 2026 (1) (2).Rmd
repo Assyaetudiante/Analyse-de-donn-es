@@ -1,0 +1,374 @@
+---
+title: "Projet"
+author: "Assya mougamadaly et Naïm ben ahmed"
+date: "2026-01-09"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+Introduction :
+Le système éducatif français, fondé sur le principe méritocratique, est censé offrir à tous les élèves des chances égales de réussite. Pourtant, de nombreuses études sociologiques mettent en évidence la persistance des inégalités sociales dans l'orientation scolaire. Le baccalauréat, diplôme-clé de l'enseignement secondaire, se décline en trois voies distinctes ,générale, technologique et professionnelle ,qui ne conduisent pas aux mêmes opportunités dans l'enseignement supérieur ni sur le marché du travail.
+
+Dans quelle mesure l'origine sociale des élèves structure-t-elle leur orientation vers les différentes filières du baccalauréat ? Cette question se décline en plusieurs interrogations :
+
+- Comment se distribuent les différentes catégories socioprofessionnelles entre les trois voies du baccalauréat ?
+- Existe-t-il une hiérarchie sociale qui se superpose à la hiérarchie des filières ?
+- Quelles catégories sociales présentent les profils d'orientation les plus typés, ou au contraire les plus diversifiés ?
+- Le baccalauréat technologique constitue-t-il une voie intermédiaire du point de vue scolaire et social ?
+
+En nous appuyant sur les travaux de Bourdieu et Passeron sur la reproduction sociale, nous formulons les hypothèses suivantes :
+
+- H1 : Les enfants de cadres et professions intellectuelles supérieures sont surreprésentés dans le baccalauréat général.
+- H2 : Les enfants d'ouvriers et d'employés sont davantage associés au baccalauréat professionnel.
+- H3 : Le baccalauréat technologique occupe une position intermédiaire et peut attirer davantage certaines catégories (agriculteurs, artisans, commerçants).
+- H4 : Les catégories sociales se distinguent par des profils d’orientation différenciés entre les trois filières.
+
+
+```{r}
+# Chargement des données
+setwd("C:/Users/naiml/OneDrive/Bureau/L3 MIASHS/S5/Sociologie analyse de données/TD")
+data <- read.csv("fr-en-reussite-au-baccalaureat-origine-sociale.csv",sep = ";")
+# Vérification de la structure des données
+library(dplyr)
+glimpse(data)
+```
+Présentation des données
+Les données utilisées proviennent des statistiques officielles du Ministère de l'Éducation nationale relatives à la réussite au baccalauréat selon l'origine sociale sur la période 1997–2024. Le jeu de données comporte 336 observations et 11 variables.
+
+Il se structure autour de deux types de données complémentaires :
+
+Des données qualitatives (nominales) :
+La variable Origine.sociale renseigne les catégories socioprofessionnelles des parents. Elle constitue la variable centrale de l’analyse, permettant de distinguer les différents milieux sociaux.
+
+Des données quantitatives (discrètes) :
+Il s’agit des effectifs d’admis au baccalauréat, déclinés selon les trois filières (générale, technologique et professionnelle), ainsi que d’une variable temporelle (Année).
+
+Afin de répondre à la problématique, les données sont mobilisées sous la forme d’un tableau de contingence croisant l’origine sociale et le type de baccalauréat à partir des effectifs d’admis. Ce format permet d’étudier les relations entre deux variables qualitatives à partir de données de comptage.
+
+Ces données permettent d’analyser plusieurs mécanismes de structuration :
+
+La différenciation sociale des filières :
+En comparant les effectifs observés à ceux qui seraient attendus dans une situation d’indépendance statistique, il est possible d’identifier des sur-représentations ou sous-représentations relatives de certaines catégories sociales dans les différentes filières.
+
+La structuration des profils d’orientation :
+L’analyse permet de repérer les proximités et oppositions entre catégories socioprofessionnelles et types de baccalauréat, mettant en évidence des profils d’orientation plus ou moins marqués selon l’origine sociale.
+
+Une lecture globale des associations :
+Les effectifs sont agrégés sur l’ensemble de la période 1997–2024 afin d’obtenir une vision d’ensemble de la structure des relations entre origine sociale et filière du baccalauréat, sans prétendre analyser finement leur évolution temporelle.
+
+Ce que cela apporte à l’analyse
+
+L’utilisation d’une Analyse Factorielle des Correspondances (AFC) sur ce tableau de contingence permet de décrire la structure des associations entre origine sociale et type de baccalauréat. Cette méthode met en évidence les logiques de proximité entre catégories sociales et filières, en s’appuyant sur des écarts relatifs aux effectifs attendus, et non sur une lecture strictement causale ou volumétrique des données.
+```{r}
+# Après avoir chargé 'data', créez 'donnees_agg' :
+
+donnees_agg <- data %>%
+
+  group_by(Origine.sociale) %>%
+
+  summarise(
+
+    Bac_General = sum(Nombre.d.admis.au.baccalaureat.général, na.rm = TRUE),
+
+    Bac_Techno = sum(Nombre.d.admis.au.baccalauréat.technologique, na.rm = TRUE),
+
+    Bac_Pro = sum(Nombre.d.admis.au.baccalauréat.professionnel, na.rm = TRUE)
+
+  ) %>%
+
+  filter(Origine.sociale != "Ensemble")  # Exclusion de la catégorie agrégée
+```
+
+Choix de la méthode d’analyse
+
+Nous utilisons une Analyse Factorielle des Correspondances (AFC) pour répondre à notre problématique. Ce choix s’impose en raison de la nature des données, qui prennent la forme d’un tableau de contingence croisant des catégories socioprofessionnelles et des types de baccalauréat à partir d’effectifs d’admis.
+
+L’AFC est une méthode de statistique exploratoire adaptée à l’étude des associations entre variables qualitatives. Elle permet d’analyser les écarts aux effectifs attendus dans une situation d’indépendance statistique et de mettre en évidence les sur-représentations et sous-représentations relatives de certaines catégories sociales dans les différentes filières.
+
+Cette méthode offre une représentation graphique synthétique des résultats : sur le plan factoriel, la proximité entre une origine sociale et une filière indique une association statistique, tandis que leur éloignement traduit une relation plus faible. Elle permet ainsi d’identifier des profils d’orientation et des oppositions structurantes entre milieux sociaux et filières du baccalauréat.
+
+Enfin, l’AFC repose sur une démarche exploratoire et descriptive, sans prétention causale, ce qui en fait un outil pertinent pour analyser la structure des orientations scolaires selon l’origine sociale.
+
+Préparation des données pour l’AFC
+
+La préparation des données constitue une étape essentielle de l’analyse. L’AFC nécessite un tableau de contingence dans lequel les lignes correspondent aux catégories d’origine sociale et les colonnes aux types de baccalauréat. Les effectifs d’admis constituent les valeurs analysées, tandis que les intitulés des catégories servent uniquement d’étiquettes et n’interviennent pas dans les calculs statistiques.
+```{r}
+# Création du tableau de contingence pour l'AFC
+
+matrice_afc <- as.matrix(donnees_agg[, -1])
+
+rownames(matrice_afc) <- donnees_agg$Origine.sociale
+colnames(matrice_afc) <- c("Bac Général", "Bac Technologique", "Bac Professionnel")
+
+# Vérification du tableau de contingence
+matrice_afc
+```
+Ce tableau met en évidence une structuration différenciée des orientations scolaires selon l’origine sociale. L’examen des effectifs d’admis montre que les catégories socioprofessionnelles ne sont pas réparties de manière homogène entre les trois voies du baccalauréat.
+
+Certaines origines sociales apparaissent relativement plus associées à la filière générale, tandis que d’autres sont davantage représentées dans les filières technologique et professionnelle. Cette distribution traduit l’existence d’une hiérarchisation des filières, qui se superpose à une différenciation sociale des trajectoires scolaires. Le tableau permet ainsi de décrire des profils d’orientation contrastés selon le milieu social, sans préjuger des mécanismes causaux sous-jacents.
+
+
+Analyse de la dépendance entre origine sociale et filière:
+```{r}
+# Test du chi-deux d'indépendance
+chisq <- chisq.test(matrice_afc)
+chisq
+```
+Le test du khi-deux est significatif (p < 2.2e-16), indiquant que l'origine sociale et le type de baccalauréat ne sont pas indépendants.Ce résultat justifie le recours à une Analyse Factorielle des Correspondances afin d’explorer la structure des associations entre catégories sociales et filières.
+
+Réalisation de l'AFC
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+# Analyse Factorielle des Correspondances
+res_afc <- CA(matrice_afc, graph = FALSE)
+
+# Valeurs propres
+valeurs_propres <- res_afc$eig
+valeurs_propres
+
+```
+Résultat : valeurs propres (AFC)
+
+L’Analyse Factorielle des Correspondances fournit deux dimensions, le tableau de contingence comportant trois colonnes.
+La dimension 1 présente une valeur propre de 0,1553 et explique 91,72 % de l’inertie totale.
+La dimension 2 présente une valeur propre de 0,0140 et explique 8,28 % de l’inertie.
+Le cumul des deux dimensions atteint 100 % de l’inertie totale.
+
+Interprétation
+
+L’examen des valeurs propres montre que l’essentiel de l’information est concentré sur le premier axe, tandis que le second axe apporte un éclairage complémentaire. L’analyse est donc centrée sur le premier plan factoriel (axes 1 et 2), les dimensions suivantes n’apportant aucune information supplémentaire et n’étant pas interprétables.
+
+Détermination du nombre d'axes à retenir
+```{r}
+# Graphique des valeurs propres (éboulis)
+fviz_eig(res_afc, addlabels = TRUE, title = "Valeurs propres - AFC")
+```
+L'examen des valeurs propres montre que :
+
+La dimension 1 explique 91,72% de l'inertie totale (valeur propre = 0,1553)
+
+La dimension 2 explique 8,28% de l'inertie (valeur propre = 0,0140)
+
+Le cumul des deux dimensions atteint 100% de l'inertie totale
+
+Nous retenons donc deux axes pour l'analyse.
+
+Visualisation des résultats
+```{r}
+# 1. Graphique des lignes (origines sociales)
+fviz_ca_row(res_afc, 
+            col.row = "cos2",
+            gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+            repel = TRUE,
+            title = "AFC - Position des origines sociales")
+
+# 2. Graphique des colonnes (filières)
+fviz_ca_col(res_afc,
+            col.col = "contrib",
+            gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+            repel = TRUE,
+            title = "AFC - Contributions des filières")
+
+# 3. Biplot (lignes + colonnes)
+fviz_ca_biplot(res_afc,
+               repel = TRUE,
+               col.row = "blue",
+               col.col = "red",
+               title = "AFC - Biplot (Origines sociales × Filières)")
+```
+
+
+Qualité de représentation et contributions:
+```{r}
+# Cosinus carré (qualité de représentation)
+cos2_ind <- rowSums(res_afc$row$cos2[, 1:2])
+cos2_var <- rowSums(res_afc$col$cos2[, 1:2])
+
+cat("Qualité de représentation moyenne dans le plan 1-2 :\n")
+cat("- Individus (origines sociales) :", round(mean(cos2_ind), 3), "\n")
+cat("- Variables (filières) :", round(mean(cos2_var), 3), "\n\n")
+
+# Origines sociales bien représentées (cos2 > 0.8)
+cat("Origines sociales bien représentées (cos2 > 0.8) :\n")
+print(names(cos2_ind)[cos2_ind > 0.8])
+
+# Contributions des filières aux axes
+cat("\nContributions des filières aux axes (%):\n")
+contrib_filieres <- round(res_afc$col$contrib, 1)
+print(contrib_filieres)
+
+# Tableau des coordonnées principales
+cat("\nCoordonnées principales des origines sociales :\n")
+coord_ind <- data.frame(
+  Origine = rownames(res_afc$row$coord),
+  Dim1 = round(res_afc$row$coord[, 1], 3),
+  Dim2 = round(res_afc$row$coord[, 2], 3),
+  Cos2 = round(rowSums(res_afc$row$cos2[, 1:2]), 3)
+)
+print(coord_ind)
+```
+
+Interprétation
+Interprétation des axes
+Axe 1 (91,72% de l'inertie) : Oppose clairement le baccalauréat général (coordonnée négative) au baccalauréat professionnel (coordonnée positive). Cet axe traduit l'opposition entre capital culturel (filière générale) et orientation professionnelle précoce (filière professionnelle).
+
+Axe 2 (8,28% de l'inertie) : Met en lumière la position spécifique du baccalauréat technologique. Il attire particulièrement certaines catégories intermédiaires comme les agriculteurs exploitants et les artisans/commerçants.
+
+Validation des hypothèses
+H1 : Partiellement confirmée
+Les enfants de cadres et professions intellectuelles supérieures se situent majoritairement du côté du bac général. Cependant, on observe une diversité interne à ces catégories.
+
+H2 : Confirmée
+Les enfants d'ouvriers et d'employés sont nettement associés au bac professionnel (position à droite sur l'axe 1).
+
+H3 : Confirmée
+Le bac technologique occupe effectivement une position intermédiaire et attire davantage certaines catégories comme les agriculteurs et artisans.
+
+H4 : Confirmée
+Les catégories sociales présentent des profils d'orientation clairement différenciés, avec des regroupements distincts dans le plan factoriel.
+
+Discussion et limites
+Discussion des résultats
+Les résultats confirment la persistance d'une forte reproduction sociale dans l'orientation scolaire. La hiérarchie des filières du baccalauréat se superpose à une hiérarchie sociale : les catégories favorisées optent massivement pour la voie générale, tandis que les classes populaires sont orientées vers la voie professionnelle.
+
+La voie technologique joue un rôle ambigu : tout en étant socialement intermédiaire, elle ne constitue pas un simple pont entre les deux autres filières mais suit une logique propre.
+
+Limites de l'étude
+Agrégation temporelle : Les données couvrent 1997-2024, masquant d'éventuelles évolutions historiques.
+
+Données de réussite, non d'orientation : Nous analysons les admis, pas les inscrits ou les choix d'orientation initiaux.
+
+Catégories composites : Certaines catégories comme "Cadres, professions intellectuelles supérieures" apparaissent en double dans les données.
+
+Effet de structure : L'analyse ne prend pas en compte les différences d'effectifs entre catégories sociales.
+
+Conclusion : 
+Notre analyse factorielle des correspondances permet de répondre clairement à la problématique centrale : Dans quelle mesure l'origine sociale des élèves structure-t-elle leur orientation vers les différentes filières du baccalauréat ?
+
+1. Une structuration très marquée
+L'analyse révèle que l'origine sociale structure profondément et systématiquement l'orientation scolaire. Le test du khi-deux significatif (p < 2.2e-16) confirme l'absence d'indépendance statistique entre l'origine sociale et le choix de filière. Plus précisément :
+
+91,72% de l'inertie (variation totale) est capturée par le premier axe, qui oppose radicalement le baccalauréat général au baccalauréat professionnel.
+
+Cette opposition principale traduit une hiérarchie sociale claire qui se superpose à la hiérarchie des filières.
+
+2. Une triple segmentation sociale du baccalauréat
+Le système éducatif français reproduit une division tripartite selon l'origine sociale :
+
+• Voie générale : territoire des catégories favorisées
+
+Enfants de cadres et professions intellectuelles supérieures (H1 confirmée)
+
+Professions intermédiaires, particulièrement les enseignants
+
+Logique : reproduction du capital culturel, projection vers l'enseignement supérieur long
+
+• Voie professionnelle : destin des classes populaires
+
+Enfants d'ouvriers et d'employés (H2 confirmée)
+
+Autres personnes sans activité professionnelle
+
+Logique : orientation précoce vers l'emploi, formation courte
+
+• Voie technologique : position intermédiaire spécifique
+
+Attire particulièrement agriculteurs, artisans, commerçants (H3 confirmée)
+
+Position sociale intermédiaire entre cadres et ouvriers
+
+Logique : acquisition de compétences techniques, positionnement hybride
+
+3. Validation des mécanismes de reproduction sociale
+L'analyse confirme les théories de Bourdieu et Passeron sur la reproduction sociale :
+
+Capital culturel : Les catégories dotées en capital culturel (cadres, enseignants) privilégient la voie générale.
+
+Capital économique : Les catégories populaires s'orientent vers la professionnalisation rapide.
+
+Héritage social : Chaque catégorie tend à reproduire sa position sociale par des choix d'orientation différenciés.
+
+4. Réponses aux questions spécifiques
+Comment se distribuent les CSP entre les voies ?
+
+Distribution très inégale : chaque filière a son public social spécifique.
+
+Existe-t-il une hiérarchie sociale superposée à la hiérarchie des filières ?
+
+Oui, clairement : Générale (cadres) > Technologique (intermédiaires) > Professionnelle (populaire).
+
+Quelles catégories ont les profils les plus typés ?
+
+Plus typés : Cadres (vers général) et ouvriers (vers professionnel)
+
+Plus diversifiés : Professions intermédiaires, retraités
+
+Le bac technologique est-il une voie intermédiaire ?
+
+Oui, socialement et scolairement, mais avec une logique propre qui n'en fait pas un simple compromis.
+
+5. Implications pour le système éducatif français
+Cette analyse met en lumière plusieurs paradoxes du système méritocratique français :
+
+Égalité formelle vs inégalité réelle : Malgré l'idéal méritocratique, les choix d'orientation restent profondément socialisés.
+
+Démocratisation quantitative vs reproduction qualitative : L'augmentation du nombre de bacheliers masque la persistance des inégalités sociales dans l'accès aux différentes filières.
+
+Orientation vs prédestination : Les choix semblent moins relever d'une orientation individuelle que d'une prédestination sociale.
+
+6. En conclusion : un déterminisme social persistant
+L'origine sociale structure de manière très forte l'orientation vers les différentes filières du baccalauréat. Le baccalauréat français, loin d'être un diplôme unifié, fonctionne comme un tri social qui :
+
+Reconduit les positions sociales existantes
+
+Légitime les inégalités par le mérite scolaire
+
+Produit des destins sociaux différenciés dès la fin du secondaire
+
+Notre étude montre ainsi que le système éducatif, censé être un moteur de mobilité sociale, fonctionne surtout comme un mécanisme de reproduction des inégalités. Malgré les réformes successives et l'idéal méritocratique, l'école française continue de traduire en destins scolaires différenciés les positions sociales héritées des familles.
+
+Cette analyse confirme que, plus de cinquante ans après les travaux fondateurs de Bourdieu et Passeron, la reproduction sociale reste une réalité structurelle du système éducatif français, et le baccalauréat en est l'un des principaux rouages.
+Annexes:
+```{r}
+# Tableau complet des résultats
+resultats_complets <- data.frame(
+  Origine = rownames(res_afc$row$coord),
+  Dim1 = round(res_afc$row$coord[, 1], 3),
+  Dim2 = round(res_afc$row$coord[, 2], 3),
+  Contrib_Dim1 = round(res_afc$row$contrib[, 1], 1),
+  Contrib_Dim2 = round(res_afc$row$contrib[, 2], 1),
+  Cos2 = round(rowSums(res_afc$row$cos2[, 1:2]), 3)
+)
+
+print("Tableau complet des résultats :")
+print(resultats_complets)
+
+# Matrice des contributions
+print("\nMatrice des contributions des filières :")
+print(round(res_afc$col$contrib, 1))
+```
+
+Nous avons décider de rajouter la CAH à la suite de notre travail
+Afin de compléter l’AFC et de synthétiser les profils d’orientation des origines sociales, une Classification Ascendante Hiérarchique (CAH) a été réalisée à partir des coordonnées factorielles des deux premiers axes de l’AFC. Cette méthode permet de regrouper les catégories sociales présentant des profils d’orientation similaires.
+```{r}
+# Coordonnées des origines sociales sur les deux premiers axes
+coord_cah <- res_afc$row$coord[, 1:2]
+
+# Calcul de la distance
+dist_cah <- dist(coord_cah)
+
+# CAH
+cah <- hclust(dist_cah, method = "ward.D2")
+
+plot(cah, main = "Dendrogramme - CAH des origines sociales",
+     xlab = "", sub = "")
+
+# Découpage en 3 classes
+groupes <- cutree(cah, k = 3)
+groupes
+
+```
+
